@@ -15,27 +15,6 @@ var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/outdoors-v1
 var darkmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?" +
 "access_token=pk.eyJ1Ijoia2pnMzEwIiwiYSI6ImNpdGRjbWhxdjAwNG0yb3A5b21jOXluZTUifQ." +
 "T6YbdDixkOBWH_k9GbS8JQ");
-// Initialize the SVG layer
-map._initPathRoot()
-// We pick up the SVG from the map object
-var svg = d3.select("#map").select("svg"),
-g = svg.append("g");
-
-d3.json("circles.json", function(collection) {
-  collection.objects.forEach(function(d) {
-  d.LatLng = new L.LatLng(d.circle.coordinates[0],
-  d.circle.coordinates[1])
-  })
-})
-
-var feature = g.selectAll("circle")
-.data(collection.objects)
-.enter().append("circle")
-.style("stroke", "black")
-.style("opacity", .6)
-.style("fill", "red")
-.attr("r", 20);
-
 
 
 function createFeatures(earthquakeData) {
@@ -46,22 +25,6 @@ function createFeatures(earthquakeData) {
     //Create the popups
     layer.bindPopup("<h1>" + feature.properties.place +"</h1><hr>"+"<h3>" + "Magnitude: " + feature.properties.mag+ 
     "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
-    
-    //Create the circles make the radius proportionate to the magnitude of the earthquake. Also can use D3 to do this. Check in the leaflet book PDF
-    // I also need to make a coloring scale based off of the magnitude
-    var circle = {
-      radius: 2000,
-      fillColor: "#ff7800",
-      color: "#000",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
-    };
-    L.geoJSON(feature, {
-      pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, circle);
-      }
-    });
   }
       
   // Create a GeoJSON layer containing the features array on the earthquakeData object
@@ -73,10 +36,6 @@ function createFeatures(earthquakeData) {
   // Sending our earthquakes layer to the createMap function
   createMap(earthquakes);
 }
-
-//Create gradient colors for the size of the magnitudes
-
-//Create locations for the seismic circles
 
 //Make a layer
 
