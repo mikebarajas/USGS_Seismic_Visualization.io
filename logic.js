@@ -4,12 +4,6 @@ var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_we
 // Perform a GET request to the query URL
 d3.json(queryUrl, function(data) {
   // Once we get a response, send the data.features object to the createFeatures function
-  L.geoJSON(data, {
-    style: function(geometry) {
-        type: "circle"
-    } 
-
-  })
   createFeatures(data.features);
 });
 
@@ -21,8 +15,6 @@ var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/outdoors-v1
 var darkmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?" +
 "access_token=pk.eyJ1Ijoia2pnMzEwIiwiYSI6ImNpdGRjbWhxdjAwNG0yb3A5b21jOXluZTUifQ." +
 "T6YbdDixkOBWH_k9GbS8JQ");
-// Initialize the SVG layer
-
 
 function createFeatures(earthquakeData) {
   
@@ -33,39 +25,36 @@ function createFeatures(earthquakeData) {
     layer.bindPopup("<h1>" + feature.properties.place +"</h1><hr>"+"<h3>" + "Magnitude: " + feature.properties.mag+ 
     "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
     
-    //Create the circles make the radius proportionate to the magnitude of the earthquake. Also can use D3 to do this. Check in the leaflet book PDF
-    // I also need to make a coloring scale based off of the magnitude
-    // var circle = {
-    //   radius: 2000,
-    //   fillColor: "#ff7800",
-    //   color: "#000",
-    //   weight: 1,
-    //   opacity: 1,
-    //   fillOpacity: 0.8
-    // };
-    // L.geoJSON(feature, {
-    //   pointToLayer: function (feature, latlng) {
-    //       return L.circleMarker(latlng, circle);
-    //   }
-    // });
   }
   
   var coords = [];
   var magnitude = [];
-
-  var coords = L.geoJSON(earthquakeData, {
+  var magMarkers= [];
+  
+  L.geoJSON(earthquakeData, {
     onEachFeature: function (feature, layer) {
-      coords.push(feature.geometry.coordinates);
+      coords.push([feature.geometry.coordinates[1],feature.geometry.coordinates[0]]);
     }})
-
-  var magnitude = L.geoJSON(earthquakeData, {
+    
+  L.geoJSON(earthquakeData, {
     onEachFeature: function (feature, layer) {
       magnitude.push(feature.properties.mag);
     }})
 
-  console.log(coords)
-  console.log(magnitude)
+  for (var i = 0; i < coords.length; i++) {
+    // Setting the marker radius for the state by passing population into the markerSize function
+    magMarkers.push(
+      L.circle(coords[i], {
+        stroke: false,
+        fillOpacity: magnitude[i]/10,
+        color: "black",
+        fillColor: "red",
+        radius: magnitude[i] * 50000
+      })
+    )};
 
+  var circleLayer = L.layerGroup(magMarkers)
+  
   // Create a GeoJSON layer containing the features array on the earthquakeData object
   // Run the onEachFeature function once for each piece of data in the array
   var earthquakes = L.geoJSON(earthquakeData, {
@@ -73,8 +62,10 @@ function createFeatures(earthquakeData) {
   });
   
   // Sending our earthquakes layer to the createMap function
-  createMap(earthquakes);
+  createMap(earthquakes, circleLayer);
 }
+
+
 
 //Create gradient colors for the size of the magnitudes
 
@@ -82,7 +73,7 @@ function createFeatures(earthquakeData) {
 
 //Make a layer
 
-function createMap(earthquakes) {
+function createMap(earthquakes, circleLayer) {
   
   
   // Define a baseMaps object to hold our base layers
@@ -93,7 +84,8 @@ function createMap(earthquakes) {
   
   // Create overlay object to hold our overlay layer
   var overlayMaps = {
-    Earthquakes: earthquakes
+    "Earthquakes": earthquakes,
+    "Magnitude": circleLayer 
   };
   
   // Create our map, giving it the streetmap and earthquakes layers to display on load
@@ -102,7 +94,7 @@ function createMap(earthquakes) {
       37.09, -95.71
     ],
     zoom: 5,
-    layers: [streetmap, earthquakes]
+    layers: [streetmap, earthquakes, circleLayer]
   });
   
   // Create a layer control
