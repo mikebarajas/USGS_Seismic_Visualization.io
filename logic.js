@@ -35,21 +35,37 @@ function createFeatures(earthquakeData) {
     
     //Create the circles make the radius proportionate to the magnitude of the earthquake. Also can use D3 to do this. Check in the leaflet book PDF
     // I also need to make a coloring scale based off of the magnitude
-    var circle = {
-      radius: 2000,
-      fillColor: "#ff7800",
-      color: "#000",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
-    };
-    L.geoJSON(feature, {
-      pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, circle);
-      }
-    });
+    // var circle = {
+    //   radius: 2000,
+    //   fillColor: "#ff7800",
+    //   color: "#000",
+    //   weight: 1,
+    //   opacity: 1,
+    //   fillOpacity: 0.8
+    // };
+    // L.geoJSON(feature, {
+    //   pointToLayer: function (feature, latlng) {
+    //       return L.circleMarker(latlng, circle);
+    //   }
+    // });
   }
-      
+  
+  var coords = [];
+  var magnitude = [];
+
+  var coords = L.geoJSON(earthquakeData, {
+    onEachFeature: function (feature, layer) {
+      coords.push(feature.geometry.coordinates);
+    }})
+
+  var magnitude = L.geoJSON(earthquakeData, {
+    onEachFeature: function (feature, layer) {
+      magnitude.push(feature.properties.mag);
+    }})
+
+  console.log(coords)
+  console.log(magnitude)
+
   // Create a GeoJSON layer containing the features array on the earthquakeData object
   // Run the onEachFeature function once for each piece of data in the array
   var earthquakes = L.geoJSON(earthquakeData, {
